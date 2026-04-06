@@ -1,0 +1,233 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>iOS lara Font Patcher</title>
+    <link rel="stylesheet" href="https://pyscript.net/releases/2024.1.1/core.css">
+    <script type="module" src="https://pyscript.net/releases/2024.1.1/core.js"></script>
+    <style>
+        body {
+            font-family: "Comic Sans MS", "Comic Sans", cursive;
+            line-height: 1.5;
+            color: #333;
+            max-width: 500px;
+            margin: 50px auto;
+            padding: 20px;
+        }
+        h2 {
+            margin-top: 0;
+            padding-bottom: 10px;
+            font-weight: bold;
+            border: none;
+        }
+        .field {
+            margin-bottom: 20px;
+        }
+        label {
+            display: block;
+            margin-bottom: 5px;
+            font-weight: normal;
+        }
+        input[type="file"] {
+            display: block;
+            width: 100%;
+            font-family: inherit;
+        }
+        button {
+            padding: 10px 15px;
+            cursor: pointer;
+            font-family: inherit;
+            background: #eee;
+            border: none;
+        }
+        #status {
+            margin-top: 20px;
+            padding: 10px;
+            background: #f9f9f9;
+            font-size: 0.85em;
+            border: none;
+            max-height: 200px;
+            overflow-y: auto;
+            text-align: left;
+            white-space: pre-wrap; 
+            font-family: monospace;
+        }
+        .credits {
+            margin-top: 30px;
+            font-size: 10px;
+            color: #888;
+            text-align: center;
+        }
+    </style>
+</head>
+<body>
+
+    <h2>iOS lara Font Patcher</h2>
+    
+    <div class="field">
+        <label for="template">[Optional]: Original SFUI.ttf file (if default .ttf doesn't work):</label>
+        <input type="file" id="template" accept=".ttf">
+    </div>
+
+    <div class="field">
+        <label for="source">Font file to be patched:</label>
+        <input type="file" id="source" accept=".ttf">
+    </div>
+
+    <button id="run_patch" py-click="process">Patch Font</button>
+
+    <div id="status">Starting Python...</div>
+
+    <div class="credits">Made with ❤️ by neonmodder123. Credits to jay20154068 and tabemaru for inspiration!</div>
+
+    <py-config>
+        packages = ["fontTools"]
+    </py-config>
+
+    <script type="py">
+import io
+import copy
+from fontTools.ttLib import TTFont, newTable
+from pyscript import document
+from js import Uint8Array, File, URL, document as js_doc, fetch
+from fontTools.ttLib.scaleUpem import scale_upem
+
+status_box = document.querySelector("#status")
+status_box.innerText = "Python Ready!\n"
+
+def log(message):
+    status_box.innerHTML += f"> {message}<br>"
+    status_box.scrollTop = status_box.scrollHeight
+
+def get_base_records(base):
+    needed = set()
+    if 'fvar' in base:
+        for a in base['fvar'].axes: needed.add(a.axisNameID)
+        for i in base['fvar'].instances:
+            needed.add(i.subfamilyNameID)
+            if i.postscriptNameID != 0xFFFF: needed.add(i.postscriptNameID)
+    if 'STAT' in base:
+        try:
+            tbl = base['STAT'].table
+            for a in tbl.DesignAxisRecord.Axis: needed.add(a.AxisNameID)
+            if hasattr(tbl, 'AxisValueArray') and tbl.AxisValueArray:
+                for v in tbl.AxisValueArray.AxisValue: needed.add(v.ValueNameID)
+        except: pass
+    
+    recs = {}
+    if 'name' in base:
+        for nr in base['name'].names:
+            if nr.nameID in needed:
+                recs[(nr.platformID, nr.platEncID, nr.langID, nr.nameID)] = nr
+    return recs
+
+async def process(event):
+    btn = document.querySelector("#run_patch")
+    try:
+        t_input = document.querySelector("#template").files.item(0)
+        s_input = document.querySelector("#source").files.item(0)
+        
+        if not s_input:
+            log("Error: The font file to be patched is required!")
+            return
+
+        original_name = s_input.name
+        if "." in original_name:
+            name_parts = original_name.split(".")
+            export_name = ".".join(name_parts[:-1]) + "_patched.ttf"
+        else:
+            export_name = original_name + "_patched.ttf"
+
+        btn.disabled = True
+
+        t_data = None
+        if t_input:
+            log("Using uploaded SFUI template...")
+            t_data = io.BytesIO((await t_input.arrayBuffer()).to_py())
+        else:
+            log("Fetching SFUI.ttf from server...")
+            try:
+                response = await fetch("SFUI.ttf")
+                if response.ok:
+                    log("Found SFUI.ttf on server!")
+                    js_buffer = await response.arrayBuffer()
+                    t_data = io.BytesIO(js_buffer.to_py())
+                else:
+                    log("Error: SFUI.ttf not found on server. Please upload it manually.")
+                    btn.disabled = False
+                    return
+            except Exception as e:
+                log("Failed to fetch from server. Please upload SFUI.ttf manually.")
+                btn.disabled = False
+                return
+
+        log(f"Starting patch for {original_name}...")
+        s_data = io.BytesIO((await s_input.arrayBuffer()).to_py())
+
+        base = TTFont(t_data)
+        src = TTFont(s_data)
+
+        target_upm = 2048
+        original_upm = src['head'].unitsPerEm
+        
+        if original_upm != target_upm:
+            log(f"Patching UPM: {original_upm} to {target_upm}...")
+            scale_upem(src, target_upm)
+        else:
+            log(f"UPM is already {target_upm}.")
+
+        if 'glyf' not in src:
+            log("Error: Source font is not a valid .ttf (glyf missing!)")
+            btn.disabled = False
+            return
+
+        log("Merging tables...")
+        dst = TTFont(t_data)
+        dst.setGlyphOrder(src.getGlyphOrder())
+
+        for t in ['glyf','loca','hmtx','maxp','head','hhea','OS/2','post','cmap','prep','fpgm','cvt ','gasp','VDMX','LTSH','hdmx']:
+            if t in src: dst[t] = copy.deepcopy(src[t])
+
+        for t in ['GPOS', 'GSUB', 'GDEF']:
+            if t in src: dst[t] = copy.deepcopy(src[t])
+            elif t in dst: del dst[t]
+
+        base_records = get_base_records(base)
+        if 'name' in src:
+            dst['name'] = copy.deepcopy(src['name'])
+            existing = set((n.platformID, n.platEncID, n.langID, n.nameID) for n in dst['name'].names)
+            for k, r in base_records.items():
+                if k not in existing: dst['name'].names.append(copy.copy(r))
+
+        for t in ['HVAR', 'MVAR', 'VVAR']:
+            if t in dst: del dst[t]
+        if 'gvar' in dst: del dst['gvar']
+        
+        gv = newTable('gvar')
+        gv.version = 1
+        gv.axisCount = len(dst['fvar'].axes) if 'fvar' in dst else 0
+        gv.sharedTuples = []
+        gv.variations = {g: [] for g in dst.getGlyphOrder()}
+        dst['gvar'] = gv
+
+        log("Saving font...")
+        out = io.BytesIO()
+        dst.save(out)
+        
+        js_bytes = Uint8Array.new(len(out.getvalue()))
+        js_bytes.assign(out.getvalue())
+        blob = File.new([js_bytes], export_name, { "type": "font/ttf" })
+        
+        link = js_doc.createElement("a")
+        link.href = URL.createObjectURL(blob)
+        link.download = export_name
+        link.click()
+        
+        log(f"Success! Downloaded as: {export_name}")
+    except Exception as e:
+        log(f"Error: {str(e)}")
+    finally:
+        btn.disabled = False
+    </script>
+</body>
+</html>
