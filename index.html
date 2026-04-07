@@ -1,0 +1,151 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Welcome :)</title>
+    <style>
+        :root {
+            --background-primary: #1a1a1a;
+            --border-primary: #5c5c5c;
+            --category-title-text-color: #3973AC;
+            --brand-experiment: #3a496b;
+            --selection-background: #265d96;
+            --text-normal: #dcddde;
+            --text-muted: #949BA4;
+            --header-secondary: #b9bbbe;
+            /* From a Discord theme :) */
+            --bg-overlay: url('data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAEYAAABGBAMAAACDAP+3AAAAAXNSR0IArs4c6QAAAARnQU1BAACxjwv8YQUAAAAVUExURRgYGBcXFxUVFRoaGhsbGx0dHRwcHFbDdK8AAAAJcEhZcwAADr8AAA6/ATgFUyQAAAUASURBVEjHTZbBjttIDETZamXOTWmQs+T8QGta67Nm5fgcYIM9ezGz+f9P2FeUjKyBMIZFdReLxeKYpcvc0uBu1YrdajFbzcz/eKSLl3rxOZPjUyKMPEi58kOfWrJstbovxdz1rhv5fMsbTwh76mvZZmvdmIrxPhml8zmNyaxxiFmuydr4NnvmoRdbdEYbfC67nn4Sxhsvvm5+8fEjufsLOXPZAFxelPNhVvqNb0fOTk6piZwqXMvXjVtVWiNYKzaDkFJKx5WFvDSqYKq+WV9tLxmsM4BrKWngZ16YEq/kpVmhLspOOwChyKmC68yW2b3f+KnfKG2tHLG+k3MVmHUH9WiVnMrjsm6ppHsS2WmYfU0+eFMYwTOMgjkm3VWbef8mrImCeqAMdCEotq00bnSYBjMIvFJJ2aGQbCqG3dKygMSnXwRTWHtC5ht5n8KwA9g+lfYBhPIAq+1AzYtyvl0XXv4AGDwnylNOjXpmANc06y4qrwYAepZKo4hLnTjfim7NzY3KVgi0Nb1Wa+lVcigE2i4gSe0XxVRMr4Q91VCkNCGez6A2vzy4ZQVWukL7cF2ePOdOnbefFHTdLaX7Rnn3RC1NuqmRQ5gkz7iGAri4D2Ur5MTzArODhL5bSLlSNc0ry1BnE/tArxcwV7WaoixnRoAwiOKZisWzTop7iv1SlJTzzQekC5hv4vkg8j36I3bRbip5Sz6PpifiGZCzJNPCHinQqRZ/aKBK/UISXcFgUiZrq9qcw6KU1AMN0ltb4ccLENrbWJXsvwfzxzCFEBxeRHZ13dN3BsBnt1X/s03ieWTXiS/6ry1nuxOEphbDKAu+Qi3EAm5KyfFgjLb0ISmqSZdyU1baj5BsKpZJJ2KLMpCkWLY+kyROQRcnr1+8lxCYqYBLm5/idhgd49vlPcNIaTXh7qQ92qplx7E7gC7PpQgO+sqwQmjSNukw13EYgcTLR/KAjOl4mmiqOn63E1yEExNeibfZIqYDDmHlOcBKQc1dD6oiWa2TbKxB+C//DMPs+bTX0Sf5tNvYk7B7sjQaaoofvJ8nhOaUNOBUv31TRR3gSLHQAl7o9ojWIHiQRDhGbcoS6nzZCUcooatSxeWfhMb4SIv4SDKkWEFz/LefXhSLE8YNWtfRXH/kJfm2h027MeJFlLmcphj1EOGG+z6aRT1CBNQHCAavNDzEsTOMZiZvTGAEyF4LzWswssxQcjBrp8UA1qKGdeNK3f7E9kGxX0XUgZ7Dw7Y5fMLytCz9FAttHtCL4u22kGxTHlTGaWbuoNd4QHZKm9rYXD4kixVEy6Zljot2DTxbtVEIPQyUtxghw1bxv6PZmrF9rxsFRFrYwzyZ/9NMUtIQ9kfFCPZF5Rth6efFB/npNKLXcSVGBgaPi1it2ppnpZBVZt2dMUpYImpiz0IN2Pw3OVYdASKs5/CyhavolhrN1g41Md85pVp+fLrPX5bkEL/dqp4EMXlu0bqX9DZ37Li1Z7shpTdgi9Jr8p6bqeyTwFnYA38LKNgq/YEu3e7xs0O7+M/1aWNKBsJL6EuP6bxNIo+zcep2lDSA6Z168KulXNQTC9G1nPKP5TzIzaNlP2QDwTFKG9wEYsdEdoRXH8gcc4TD0ualZzGTW4Sf1BsU8gbPGPU1Q1SL1VlHbwGk0migDeFw4tL02Zg0ZVylxXfEegsu36Va51uEXr7zpTw+JAy8ib4/h/o4qxp5wlvXAAAAABJRU5ErkJggg==');
+        }
+
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+        }
+
+        body {
+            background-color: var(--background-primary);
+            background-image: var(--bg-overlay);
+            font-family: 'gg sans', 'Noto Sans', 'Helvetica Neue', Helvetica, Arial, sans-serif;
+            color: var(--text-normal);
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            min-height: 100vh;
+            overflow: hidden;
+        }
+
+        .container {
+            width: 90%;
+            max-width: 600px;
+            background: rgba(47, 49, 54, 0.8);
+            border: 1px solid var(--border-primary);
+            border-radius: 8px;
+            padding: 40px;
+            text-align: center;
+            box-shadow: 0 8px 16px rgba(0,0,0,0.3);
+            backdrop-filter: blur(4px);
+        }
+
+        h1 {
+            color: #fff;
+            font-size: 28px;
+            margin-bottom: 8px;
+            letter-spacing: 0.5px;
+        }
+
+        .subtitle {
+            color: var(--category-title-text-color);
+            text-transform: uppercase;
+            font-size: 12px;
+            font-weight: 800;
+            margin-bottom: 24px;
+        }
+
+        p {
+            color: var(--header-secondary);
+            margin-bottom: 32px;
+            line-height: 1.6;
+        }
+
+        .btn {
+            display: inline-block;
+            background-color: var(--brand-experiment);
+            color: white;
+            padding: 12px 32px;
+            border-radius: 3px;
+            text-decoration: none;
+            font-weight: 500;
+            transition: background-color 0.2s, transform 0.1s;
+            border: 1px solid var(--selection-background);
+        }
+
+        .btn:hover {
+            background-color: var(--selection-background);
+            transform: translateY(-1px);
+        }
+
+        .btn:active {
+            transform: translateY(0);
+        }
+
+        .me {
+            color: #00f3ff;
+            font-weight: bold;
+        }
+
+        .python {
+            color: #8c00ff;
+            font-weight: bold;
+        }
+
+        .c {
+            color: #0055ff;
+            font-weight: bold;
+        }
+
+        .javascript {
+            color: #ffee00;
+            font-weight: bold;
+        }
+
+        .html-text {
+            color: #ff3c00;
+            font-weight: bold;
+        }
+
+        .astudio {
+            color: #00d5ff;
+            font-weight: bold;
+        }
+
+        .projects {
+            color: #fff;
+            font-size: 23px;
+            margin-bottom: 8px;
+            letter-spacing: 0.5px;
+        }
+    </style>
+</head>
+<body>
+
+    <div class="container">
+        <h1>About Me</h1>
+        <p>
+            Hello! 👋 <br>
+            My name is <span class="me">neon</span> (neonmodder123) <br>
+            I know <span class="python">Python</span>, <span class="c">C</span>, <span class="javascript">JavaScript</span>, <span class="html-text">HTML</span>, and Bash. <br>
+            I use <span class="c">VSCode</span>, <span class="html-text">Ubuntu</span>, <span class="astudio">Android Studio</span>, <span class="python">Discord</span>, GitHub, and <span class="astudio">XCode</span>. </p>
+        
+        <p class="projects">
+            My Projects: <br> </p>
+        <p>
+            Modifying Ubuntu Touch and pmOS to be able to dualboot with android and the OS on the Nothing Phone (1). <br>
+            Porting the iOS lara font patcher in Python to HTML.
+            Currently researching the possibility of Starlight: Among Us Mod Launcher to iOS.
+        </p>
+        <a href="lara-font-patcher/index.html" class="btn">Open the Web lara Font Patcher</a>
+    </div>
+</body>
+</html>
