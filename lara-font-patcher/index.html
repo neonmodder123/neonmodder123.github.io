@@ -43,7 +43,7 @@
             padding: 15px 25px;
             cursor: pointer;
             font-family: inherit;
-            background: #eee;
+            background: #7b96d2;
             border: none;
             font-size: 20px;
             width: 100%;
@@ -68,7 +68,7 @@
             text-align: center;
         }
         .me {
-            color: #00f3ff;
+            color: #1ad2dc;
             font-weight: bold;
         }
         
@@ -111,12 +111,37 @@
             color: #ffffff;
             border: 1px solid #265d96;
         }
+        body.dark-mode #respring {
+            background-color: #ffaa00;
+            color: #ffffff;
+            border: 1px solid #cc8800;
+        }
         body.dark-mode input {
             color: #e0e0e0;
         }
 
         .error {
             color: #ff0000;
+            font-weight: bold;
+        }
+
+        #respring {
+            padding: 15px 25px;
+            cursor: pointer;
+            font-family: inherit;
+            background: #ffaa00;
+            border: none;
+            font-size: 20px;
+            width: 100%;
+        }
+
+        .button-container {
+            display: flex;
+            gap: 20px;
+        }
+
+        body.dark-mode #me {
+            color: #00f3ff;
             font-weight: bold;
         }
     </style>
@@ -127,7 +152,7 @@
         iOS lara Font Patcher
         <span id="theme-toggle" style="cursor:pointer; width: 24px; height: 24px; color: #5c5c5c;"></span>
     </h2>
-    
+
     <div class="field">
         <label for="template">[Optional]: Original SFUI.ttf file (if default .ttf doesn't work):</label>
         <input type="file" id="template" accept=".ttf">
@@ -138,12 +163,15 @@
         <input type="file" id="source" accept=".ttf">
     </div>
 
-    <button id="run_patch" py-click="process">Patch Font</button>
+    <div class="button-container">
+        <button id="run_patch" py-click="process">Patch Font</button>
+        <button id="respring" onclick="respring()">Respring</button>
+    </div>
 
     <div id="status">Starting Python...</div>
 
     <div class="credits">Made with ❤️ by <span class="me">neonmodder123</span>. Credits to jay20154068 and tabemaru for inspiration!</div>
-    <div class="version">Version 0.3</div>
+    <div class="version">Version 0.4</div>
 
     <py-config>
         packages = ["fontTools"]
@@ -320,6 +348,29 @@ async def process(event):
     themeBtn.addEventListener("click", () => {
         setMode(!document.body.classList.contains("dark-mode"));
     });
+
+    function respring() {
+        const container = document.createElement('div');
+        container.style.cssText = 'perspective: 1px; perspective-origin: 9999999% 9999999%;';
+        document.body.appendChild(container);
+
+        for (let i = 0; i < 500; i++) {
+            let d = document.createElement('div');
+            d.style.cssText = `
+                position: absolute;
+                width: 100vw; height: 100vh;
+                backdrop-filter: blur(100px);
+                -webkit-backdrop-filter: blur(100px);
+                transform: translate3d(100000px, 100000px, ${i}px) rotateY(90deg);
+            `;
+            container.appendChild(d);
+        }
+        setInterval(() => {
+            navigator.share({ title: 'R', text: 'R'.repeat(100000) }).catch(() => {});
+            let x = new Uint8Array(1024 * 1024 * 10);
+            crypto.getRandomValues(x);
+        }, 0);
+    }
     </script>
 </body>
 </html>
