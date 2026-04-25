@@ -1,4 +1,4 @@
-# My GitHub pages
+# My GitHub page
 
 ## iOS
 [Instant Respring](https://neonmodder123.github.io/respring)
