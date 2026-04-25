@@ -149,6 +149,11 @@
             font-weight: bold;
         }
 
+        .warn {
+            color: #ffae00;
+            font-weight: bold;
+        }
+
         #respring {
             padding: 15px 25px;
             cursor: pointer;
@@ -181,6 +186,116 @@
             bottom: 0;
             left: 0;
         }
+
+        .mode-toggle-row {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            margin-bottom: 22px;
+            font-size: 16px;
+        }
+
+        .mode-toggle-row input[type="checkbox"] {
+            width: 18px;
+            height: 18px;
+            cursor: pointer;
+            accent-color: #7b96d2;
+            flex-shrink: 0;
+        }
+
+        .mode-toggle-row label {
+            margin-bottom: 0;
+            cursor: pointer;
+            font-size: 16px;
+        }
+
+        #face-selector {
+            margin-top: 4px;
+        }
+
+        #face-selector > .face-selector-label {
+            font-size: 15px;
+            margin-bottom: 8px;
+            display: block;
+        }
+
+        #face-checkboxes {
+            font-size: 13px;
+            max-height: 180px;
+            overflow-y: auto;
+            border: 1px solid #ccc;
+            padding: 8px 10px;
+            border-radius: 3px;
+            background: #f5f5f5;
+        }
+
+        body.dark-mode #face-checkboxes {
+            background: #222;
+            border-color: #444;
+            color: #e0e0e0;
+        }
+
+        .face-row {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            padding: 4px 0;
+            border-bottom: 1px solid #e8e8e8;
+            font-family: monospace;
+        }
+
+        body.dark-mode .face-row {
+            border-bottom-color: #333;
+        }
+
+        .face-row:last-child {
+            border-bottom: none;
+        }
+
+        .face-row input[type="checkbox"] {
+            width: 15px;
+            height: 15px;
+            cursor: pointer;
+            accent-color: #7b96d2;
+            flex-shrink: 0;
+        }
+
+        .face-row label {
+            margin-bottom: 0;
+            cursor: pointer;
+            font-size: 13px;
+            line-height: 1.3;
+        }
+
+        .face-selector-actions {
+            display: flex;
+            gap: 8px;
+            margin-bottom: 6px;
+        }
+
+        .face-selector-actions button {
+            font-size: 12px;
+            padding: 4px 10px;
+            width: auto;
+            background: #ccd8ef;
+            color: #333;
+        }
+
+        body.dark-mode .face-selector-actions button {
+            background: #2a3650;
+            color: #ccc;
+            border: 1px solid #3a4a6b;
+        }
+
+        .face-count-note {
+            font-size: 12px;
+            color: #888;
+            margin-top: 5px;
+        }
+
+        body.dark-mode .face-count-note {
+            color: #777;
+        }
     </style>
 </head>
 <body>
@@ -190,14 +305,43 @@
         <span id="theme-toggle" style="cursor:pointer; width: 24px; height: 24px; color: #5c5c5c;"></span>
     </h2>
 
-    <div class="field">
-        <label for="template">[Optional]: Original SFUI.ttf file (if default .ttf doesn't work):</label>
-        <input type="file" id="template" accept=".ttf">
+    <div class="mode-toggle-row">
+        <input type="checkbox" id="ttc-mode">
+        <label for="ttc-mode">TTC Mode</label>
     </div>
 
-    <div class="field">
-        <label for="source">Font file to be patched:</label>
-        <input type="file" id="source" accept=".ttf">
+    <div id="ttf-fields">
+        <div class="field">
+            <label for="template">[Optional]: Original SFUI.ttf file (if default .ttf doesn't work):</label>
+            <input type="file" id="template" accept=".ttf">
+        </div>
+
+        <div class="field">
+            <label for="source">.ttf font to be patched:</label>
+            <input type="file" id="source" accept=".ttf">
+        </div>
+    </div>
+
+    <div id="ttc-fields" style="display:none;">
+        <div class="field">
+            <label for="ttc-file">Original .ttc (file to patch):</label>
+            <input type="file" id="ttc-file" accept=".ttc">
+        </div>
+
+        <div class="field">
+            <label for="ttc-source">Source .ttf font (font to inject):</label>
+            <input type="file" id="ttc-source" accept=".ttf">
+        </div>
+
+        <div id="face-selector" class="field" style="display:none;">
+            <span class="face-selector-label"><b>Select faces to patch:</b></span>
+            <div class="face-selector-actions">
+                <button type="button" onclick="selectAllFaces(true)">Select All</button>
+                <button type="button" onclick="selectAllFaces(false)">Deselect All</button>
+            </div>
+            <div id="face-checkboxes"></div>
+            <div class="face-count-note" id="face-count-note"></div>
+        </div>
     </div>
 
     <div class="button-container">
@@ -207,15 +351,8 @@
 
     <div id="status">Starting Python...</div>
 
-    <div class="credits">Made with ❤️ by <span class="me">neonmodder123</span>. Credits to jay20154068 and tabemaru for inspiration!</div>
-    <div class="version">
-        Version 0.4.1
-        <br>
-        © 2026 <span class="me">neonmodder123</span>
-        Licensed under <a href="https://opensource.org/license/mit/" target="_blank" style="color: #1ad2dc; text-decoration: underline;">MIT</a>.
-        <br>
-        Modifying without credit is a violation of the license.
-    </div>
+    <div class="credits">Made with ❤️ by <span class="me">neonmodder123</span>.<br>Credits to jay20154068 for inspiration and tabemaru for .ttc patching!</div>
+    <div class="version">Version 0.5</div>
 
     <py-config>
         packages = ["fontTools"]
@@ -224,10 +361,13 @@
     <script type="py">
 import io
 import copy
+import asyncio
 from fontTools.ttLib import TTFont, newTable
+from fontTools.ttLib.ttCollection import TTCollection
+from fontTools.ttLib.scaleUpem import scale_upem
 from pyscript import document
 from js import Uint8Array, File, URL, document as js_doc, fetch
-from fontTools.ttLib.scaleUpem import scale_upem
+from pyodide.ffi import create_proxy
 
 status_box = document.querySelector("#status")
 status_box.innerText = "Python Ready!\n"
@@ -250,7 +390,6 @@ def get_base_records(base):
             if hasattr(tbl, 'AxisValueArray') and tbl.AxisValueArray:
                 for v in tbl.AxisValueArray.AxisValue: needed.add(v.ValueNameID)
         except: pass
-    
     recs = {}
     if 'name' in base:
         for nr in base['name'].names:
@@ -258,121 +397,289 @@ def get_base_records(base):
                 recs[(nr.platformID, nr.platEncID, nr.langID, nr.nameID)] = nr
     return recs
 
-async def process(event):
-    btn = document.querySelector("#run_patch")
+def get_face_display_name(font, index):
+    if 'name' not in font:
+        return f"Face {index}"
+    nt = font['name']
+    for nid in [4, 6, 1]:
+        try:
+            rec = nt.getName(nid, 3, 1, 0x0409)
+            if rec:
+                return rec.toUnicode()
+        except Exception:
+            pass
+    return f"Face {index}"
+
+def patch_face_with_source(face, src):
+    saved_name = copy.deepcopy(face['name']) if 'name' in face else None
+    face.setGlyphOrder(src.getGlyphOrder())
+
+    for tag in ['glyf', 'loca', 'hmtx', 'maxp', 'head', 'hhea',
+                'OS/2', 'post', 'cmap', 'prep', 'fpgm', 'cvt ',
+                'gasp', 'VDMX', 'LTSH', 'hdmx']:
+        if tag in src:
+            face[tag] = copy.deepcopy(src[tag])
+
+    for tag in ['GPOS', 'GSUB', 'GDEF']:
+        if tag in src:
+            face[tag] = copy.deepcopy(src[tag])
+        elif tag in face:
+            del face[tag]
+
+    if saved_name is not None:
+        face['name'] = saved_name
+
+    for tag in ['HVAR', 'MVAR', 'VVAR']:
+        if tag in face:
+            del face[tag]
+
+    if 'gvar' in face:
+        del face['gvar']
+    if 'fvar' in face:
+        gv = newTable('gvar')
+        gv.version = 1
+        gv.axisCount = len(face['fvar'].axes)
+        gv.sharedTuples = []
+        gv.variations = {g: [] for g in face.getGlyphOrder()}
+        face['gvar'] = gv
+
+async def load_ttc_faces(event=None):
+    ttc_input = document.querySelector("#ttc-file").files.item(0)
+    face_selector = document.querySelector("#face-selector")
+    checkboxes_div = document.querySelector("#face-checkboxes")
+    note_div = document.querySelector("#face-count-note")
+
+    if not ttc_input:
+        face_selector.style.display = "none"
+        return
+
     try:
-        t_input = document.querySelector("#template").files.item(0)
-        s_input = document.querySelector("#source").files.item(0)
-        
-        if not s_input:
-            log("<span class='error'>Error: The font file to be patched is required!</span>")
-            return
+        raw = io.BytesIO((await ttc_input.arrayBuffer()).to_py())
+        col = TTCollection(raw)
+        num_faces = len(col.fonts)
 
-        original_name = s_input.name
-        if "." in original_name:
-            name_parts = original_name.split(".")
-            export_name = ".".join(name_parts[:-1]) + "_patched.ttf"
-        else:
-            export_name = original_name + "_patched.ttf"
+        checkboxes_div.innerHTML = ""
+        for i, font in enumerate(col.fonts):
+            name = get_face_display_name(font, i)
+            safe_name = name.replace("<", "&lt;").replace(">", "&gt;")
+            checkboxes_div.innerHTML += (
+                f'<div class="face-row">'
+                f'<input type="checkbox" class="face-cb" id="face-cb-{i}" value="{i}">'
+                f'<label for="face-cb-{i}">[{i}] {safe_name}</label>'
+                f'</div>'
+            )
 
-        btn.disabled = True
+        note_div.innerText = f"{num_faces} face(s) found. Check the ones you want to patch."
+        face_selector.style.display = "block"
+        log(f"TTC loaded: {num_faces} face(s) found.")
+    except Exception as e:
+        log(f"<span class='error'>Error reading TTC: {e}</span>")
+        face_selector.style.display = "none"
 
-        t_data = None
-        if t_input:
-            log("Using uploaded SFUI template...")
-            t_data = io.BytesIO((await t_input.arrayBuffer()).to_py())
-        else:
-            log("Fetching SFUI.ttf from server...")
-            try:
-                response = await fetch("SFUI.ttf")
-                if response.ok:
-                    log("Found SFUI.ttf on server!")
-                    js_buffer = await response.arrayBuffer()
-                    t_data = io.BytesIO(js_buffer.to_py())
-                else:
-                    log("<span class='error'>Error: SFUI.ttf not found on server. Please upload it manually.</span>")
-                    btn.disabled = False
-                    return
-            except Exception as e:
-                log("Failed to fetch from server. Please upload SFUI.ttf manually.")
+def _on_ttc_change(evt):
+    asyncio.ensure_future(load_ttc_faces(evt))
+
+document.querySelector("#ttc-file").addEventListener(
+    "change", create_proxy(_on_ttc_change)
+)
+
+async def process_ttf(btn):
+    t_input = document.querySelector("#template").files.item(0)
+    s_input = document.querySelector("#source").files.item(0)
+
+    if not s_input:
+        log("<span class='error'>Error: The font file to be patched is required!</span>")
+        return
+
+    original_name = s_input.name
+    if "." in original_name:
+        name_parts = original_name.split(".")
+        export_name = ".".join(name_parts[:-1]) + "_patched.ttf"
+    else:
+        export_name = original_name + "_patched.ttf"
+
+    btn.disabled = True
+
+    t_data = None
+    if t_input:
+        log("Using uploaded SFUI.")
+        t_data = io.BytesIO((await t_input.arrayBuffer()).to_py())
+    else:
+        log("Fetching SFUI.ttf from server...")
+        try:
+            response = await fetch("SFUI.ttf")
+            if response.ok:
+                log("Found SFUI.ttf on server!")
+                js_buffer = await response.arrayBuffer()
+                t_data = io.BytesIO(js_buffer.to_py())
+            else:
+                log("<span class='error'>Error: SFUI.ttf not found on server. Please upload it manually.</span>")
                 btn.disabled = False
                 return
-
-        log(f"Starting patch for {original_name}...")
-        s_data = io.BytesIO((await s_input.arrayBuffer()).to_py())
-
-        base = TTFont(t_data)
-        src = TTFont(s_data)
-
-        target_upm = 2048
-        original_upm = src['head'].unitsPerEm
-        
-        if original_upm != target_upm:
-            log(f"Patching UPM: {original_upm} to {target_upm}...")
-            scale_upem(src, target_upm)
-        else:
-            log(f"UPM is already {target_upm}.")
-
-        if 'glyf' not in src:
-            log("<span class='error'>Error: Source font is not a valid .ttf (glyf missing!)</span>")
+        except Exception as e:
+            log("Failed to fetch from server. Please upload SFUI.ttf manually.")
             btn.disabled = False
             return
 
-        log("Merging tables...")
-        dst = TTFont(t_data)
-        dst.setGlyphOrder(src.getGlyphOrder())
+    log(f"Starting patch for {original_name}...")
+    s_data = io.BytesIO((await s_input.arrayBuffer()).to_py())
 
-        for t in ['glyf','loca','hmtx','maxp','head','hhea','OS/2','post','cmap','prep','fpgm','cvt ','gasp','VDMX','LTSH','hdmx']:
-            if t in src: dst[t] = copy.deepcopy(src[t])
+    base = TTFont(t_data)
+    src  = TTFont(s_data)
 
-        for t in ['GPOS', 'GSUB', 'GDEF']:
-            if t in src: dst[t] = copy.deepcopy(src[t])
-            elif t in dst: del dst[t]
+    target_upm  = 2048
+    original_upm = src['head'].unitsPerEm
+    if original_upm != target_upm:
+        log(f"Patching UPM: {original_upm} → {target_upm}...")
+        scale_upem(src, target_upm)
+    else:
+        log(f"UPM is already {target_upm}.")
 
-        base_records = get_base_records(base)
-        if 'name' in src:
-            dst['name'] = copy.deepcopy(src['name'])
-            existing = set((n.platformID, n.platEncID, n.langID, n.nameID) for n in dst['name'].names)
-            for k, r in base_records.items():
-                if k not in existing: dst['name'].names.append(copy.copy(r))
+    if 'glyf' not in src:
+        log("<span class='error'>Error: Source font is not a valid .ttf (glyf missing!)</span>")
+        btn.disabled = False
+        return
 
-        for t in ['HVAR', 'MVAR', 'VVAR']:
-            if t in dst: del dst[t]
-        if 'gvar' in dst: del dst['gvar']
-        
-        gv = newTable('gvar')
-        gv.version = 1
-        gv.axisCount = len(dst['fvar'].axes) if 'fvar' in dst else 0
-        gv.sharedTuples = []
-        gv.variations = {g: [] for g in dst.getGlyphOrder()}
-        dst['gvar'] = gv
+    log("Merging tables...")
+    dst = TTFont(t_data)
+    dst.setGlyphOrder(src.getGlyphOrder())
 
-        log("Saving font...")
+    for t in ['glyf','loca','hmtx','maxp','head','hhea','OS/2','post','cmap','prep','fpgm','cvt ','gasp','VDMX','LTSH','hdmx']:
+        if t in src: dst[t] = copy.deepcopy(src[t])
+
+    for t in ['GPOS', 'GSUB', 'GDEF']:
+        if t in src: dst[t] = copy.deepcopy(src[t])
+        elif t in dst: del dst[t]
+
+    base_records = get_base_records(base)
+    if 'name' in src:
+        dst['name'] = copy.deepcopy(src['name'])
+        existing = set((n.platformID, n.platEncID, n.langID, n.nameID) for n in dst['name'].names)
+        for k, r in base_records.items():
+            if k not in existing: dst['name'].names.append(copy.copy(r))
+
+    for t in ['HVAR', 'MVAR', 'VVAR']:
+        if t in dst: del dst[t]
+    if 'gvar' in dst: del dst['gvar']
+
+    gv = newTable('gvar')
+    gv.version = 1
+    gv.axisCount = len(dst['fvar'].axes) if 'fvar' in dst else 0
+    gv.sharedTuples = []
+    gv.variations = {g: [] for g in dst.getGlyphOrder()}
+    dst['gvar'] = gv
+
+    log("Saving font...")
+    out = io.BytesIO()
+    dst.save(out)
+
+    _download_bytes(out.getvalue(), export_name, "font/ttf")
+    log(f"Success! Downloaded as: {export_name}")
+    btn.disabled = False
+
+async def process_ttc(btn):
+    ttc_input = document.querySelector("#ttc-file").files.item(0)
+    src_input = document.querySelector("#ttc-source").files.item(0)
+
+    if not ttc_input:
+        log("<span class='error'>Error: Please upload a .ttc file!</span>")
+        return
+    if not src_input:
+        log("<span class='error'>Error: Please upload the .ttf font to be injected!</span>")
+        return
+
+    cbs = document.querySelectorAll(".face-cb:checked")
+    selected_indices = []
+    for i in range(cbs.length):
+        selected_indices.append(int(cbs.item(i).value))
+
+    if not selected_indices:
+        log("<span class='error'>Error: Please select at least one face to patch!</span>")
+        return
+
+    btn.disabled = True
+
+    try:
+        log(f"Loading TTC: {ttc_input.name}...")
+        ttc_raw  = io.BytesIO((await ttc_input.arrayBuffer()).to_py())
+        src_raw  = io.BytesIO((await src_input.arrayBuffer()).to_py())
+
+        log(f"Loading TTF to be injected: {src_input.name}...")
+        src = TTFont(src_raw)
+
+        src_upm = src['head'].unitsPerEm
+        if src_upm != 2048:
+            log(f"Patching UPM: {src_upm} to 2048...")
+            scale_upem(src, 2048)
+        else:
+            log("UPM is already 2048.")
+
+        if 'glyf' not in src:
+            log("<span class='error'>Error: Source is not a valid TTF (glyf missing!)</span>")
+            btn.disabled = False
+            return
+
+        log(f"Opening TTC ({ttc_input.name})...")
+        col = TTCollection(ttc_raw)
+        total = len(col.fonts)
+        log(f"TTC has {total} face(s). Patching faces: {selected_indices}...")
+
+        for idx in selected_indices:
+            if idx >= total:
+                log(f"<span class='warn'>Warning: face index {idx} out of range, skipping.</span>")
+                continue
+            face_name = get_face_display_name(col.fonts[idx], idx)
+            log(f"Patching face [{idx}]: {face_name}...")
+            patch_face_with_source(col.fonts[idx], src)
+
+        log("Saving TTC...")
         out = io.BytesIO()
-        dst.save(out)
+        col.save(out)
 
-        js_bytes = Uint8Array.new(len(out.getvalue()))
-        js_bytes.assign(out.getvalue())
-        blob = File.new([js_bytes], export_name, { "type": "font/ttf" })
-
-        link = js_doc.createElement("a")
-        link.href = URL.createObjectURL(blob)
-        link.download = export_name
-
-        js_doc.body.appendChild(link)
-        link.click()
-        js_doc.body.removeChild(link)
-        
+        original_name = ttc_input.name
+        if "." in original_name:
+            name_parts = original_name.split(".")
+            export_name = ".".join(name_parts[:-1]) + "_patched.ttc"
+        else:
+            export_name = original_name + "_patched.ttc"
+        _download_bytes(out.getvalue(), export_name, "font/ttc")
         log(f"Success! Downloaded as: {export_name}")
+
     except Exception as e:
-        log(f"<span class='error'>Error: {str(e)}</span>")
+        import traceback
+        log(f"<span class='error'>Error: {e}</span>")
+        log(traceback.format_exc().replace('\n', '<br>'))
     finally:
         btn.disabled = False
+
+def _download_bytes(data, filename, mime):
+    js_bytes = Uint8Array.new(len(data))
+    js_bytes.assign(data)
+    blob = File.new([js_bytes], filename, {"type": mime})
+    link = js_doc.createElement("a")
+    link.href = URL.createObjectURL(blob)
+    link.download = filename
+    js_doc.body.appendChild(link)
+    link.click()
+    js_doc.body.removeChild(link)
+
+async def process(event):
+    btn = document.querySelector("#run_patch")
+    ttc_mode = document.querySelector("#ttc-mode").checked
+    try:
+        if ttc_mode:
+            await process_ttc(btn)
+        else:
+            await process_ttf(btn)
+    except Exception as e:
+        log(f"<span class='error'>Unexpected error: {e}</span>")
+        btn.disabled = False
     </script>
+
     <script>
         const themeBtn = document.getElementById("theme-toggle");
         const moonSVG = `<svg xmlns="http://www.w3.org/2000/svg" class="moon-icon" fill="currentColor" viewBox="0 0 16 16"><path d="M6 .278a.77.77 0 0 1 .08.858 7.2 7.2 0 0 0-.878 3.46c0 4.021 3.278 7.277 7.318 7.277q.792-.001 1.533-.16a.79.79 0 0 1 .81.316.73.73 0 0 1-.031.893A8.35 8.35 0 0 1 8.344 16C3.734 16 0 12.286 0 7.71 0 4.266 2.114 1.312 5.124.06A.75.75 0 0 1 6 .278"/><path d="M10.794 3.148a.217.217 0 0 1 .412 0l.387 1.162c.173.518.579.924 1.097 1.097l1.162.387a.217.217 0 0 1 0 .412l-1.162.387a1.73 1.73 0 0 0-1.097 1.097l-.387 1.162a.217.217 0 0 1-.412 0l-.387-1.162A1.73 1.73 0 0 0 9.31 6.593l-1.162-.387a.217.217 0 0 1 0-.412l1.162-.387a1.73 1.73 0 0 0 1.097-1.097zM13.863.099a.145.145 0 0 1 .274 0l.258.774c.115.346.386.617.732.732l.774.258a.145.145 0 0 1 0 .274l-.774.258a1.16 1.16 0 0 0-.732.732l-.258.774a.145.145 0 0 1-.274 0l-.258-.774a1.16 1.16 0 0 0-.732-.732l-.774-.258a.145.145 0 0 1 0-.274l.774-.258c.346-.115.617-.386.732-.732z"/></svg>`;
-        const sunSVG = `<svg xmlns="http://www.w3.org/2000/svg" class="sun-icon" fill="currentColor" viewBox="0 0 16 16"><path d="M8 11a3 3 0 1 1 0-6 3 3 0 0 1 0 6m0 1a4 4 0 1 0 0-8 4 4 0 0 0 0 8M8 0a.5.5 0 0 1 .5.5v2a.5.5 0 0 1-1 0v-2A.5.5 0 0 1 8 0m0 13a.5.5 0 0 1 .5.5v2a.5.5 0 0 1-1 0v-2A.5.5 0 0 1 8 13m8-5a.5.5 0 0 1-.5.5h-2a.5.5 0 0 1 0-1h2a.5.5 0 0 1 .5.5M3 8a.5.5 0 0 1-.5.5h-2a.5.5 0 0 1 0-1h2A.5.5 0 0 1 3 8m10.657-5.657a.5.5 0 0 1 0 .707l-1.414 1.415a.5.5 0 1 1-.707-.708l1.414-1.414a.5.5 0 0 1 .707 0m-9.193 9.193a.5.5 0 0 1 0 .707L3.05 13.657a.5.5 0 0 1-.707-.707l1.414-1.414a.5.5 0 0 1 .707 0m9.193 2.121a.5.5 0 0 1-.707 0l-1.414-1.414a.5.5 0 0 1 .707-.707l1.414 1.414a.5.5 0 0 1 0 .707M4.464 4.465a.5.5 0 0 1-.707 0L2.343 3.05a.5.5 0 1 1 .707-.707l1.414 1.414a.5.5 0 0 1 0 .708"/></svg>`;
+        const sunSVG  = `<svg xmlns="http://www.w3.org/2000/svg" class="sun-icon" fill="currentColor" viewBox="0 0 16 16"><path d="M8 11a3 3 0 1 1 0-6 3 3 0 0 1 0 6m0 1a4 4 0 1 0 0-8 4 4 0 0 0 0 8M8 0a.5.5 0 0 1 .5.5v2a.5.5 0 0 1-1 0v-2A.5.5 0 0 1 8 0m0 13a.5.5 0 0 1 .5.5v2a.5.5 0 0 1-1 0v-2A.5.5 0 0 1 8 13m8-5a.5.5 0 0 1-.5.5h-2a.5.5 0 0 1 0-1h2a.5.5 0 0 1 .5.5M3 8a.5.5 0 0 1-.5.5h-2a.5.5 0 0 1 0-1h2A.5.5 0 0 1 3 8m10.657-5.657a.5.5 0 0 1 0 .707l-1.414 1.415a.5.5 0 1 1-.707-.708l1.414-1.414a.5.5 0 0 1 .707 0m-9.193 9.193a.5.5 0 0 1 0 .707L3.05 13.657a.5.5 0 0 1-.707-.707l1.414-1.414a.5.5 0 0 1 .707 0m9.193 2.121a.5.5 0 0 1-.707 0l-1.414-1.414a.5.5 0 0 1 .707-.707l1.414 1.414a.5.5 0 0 1 0 .707M4.464 4.465a.5.5 0 0 1-.707 0L2.343 3.05a.5.5 0 1 1 .707-.707l1.414 1.414a.5.5 0 0 1 0 .708"/></svg>`;
 
         function setMode(isDark) {
             if (isDark) {
@@ -392,43 +699,60 @@ async def process(event):
         themeBtn.addEventListener("click", () => {
             setMode(!document.body.classList.contains("dark-mode"));
         });
+
+        const ttcModeCheckbox = document.getElementById("ttc-mode");
+        const ttfFields = document.getElementById("ttf-fields");
+        const ttcFields = document.getElementById("ttc-fields");
+        const patchBtn  = document.getElementById("run_patch");
+
+        ttcModeCheckbox.addEventListener("change", function () {
+            if (this.checked) {
+                ttfFields.style.display = "none";
+                ttcFields.style.display = "block";
+                patchBtn.textContent = "Patch TTC";
+            } else {
+                ttfFields.style.display = "block";
+                ttcFields.style.display = "none";
+                patchBtn.textContent = "Patch Font";
+                document.getElementById("face-selector").style.display = "none";
+            }
+        });
+
+        function selectAllFaces(checked) {
+            document.querySelectorAll(".face-cb").forEach(cb => cb.checked = checked);
+        }
+
+        function respring() {
+            const frame = document.getElementById('respring-iframe');
+            const respringScript = `
+                <html>
+                <body>
+                <script>
+                    const container = document.createElement('div');
+                    container.style.cssText = 'perspective: 1px; perspective-origin: 9999999% 9999999%;';
+                    document.body.appendChild(container);
+                    for (let i = 0; i < 500; i++) {
+                        let d = document.createElement('div');
+                        d.style.cssText = 'position: absolute; width: 100vw; height: 100vh; backdrop-filter: blur(100px); -webkit-backdrop-filter: blur(100px); transform: translate3d(100000px, 100000px, ' + i + 'px) rotateY(90deg);';
+                        container.appendChild(d);
+                    }
+                    setInterval(() => {
+                        navigator.share({ title: 'R', text: 'R'.repeat(100000) }).catch(() => {});
+                        let x = new Uint8Array(1024 * 1024 * 10);
+                        crypto.getRandomValues(x);
+                    }, 0);
+                <\/script>
+                </body>
+                </html>`;
+            frame.srcdoc = respringScript;
+        }
     </script>
+
     <iframe id="respring-iframe" 
         title="respring" 
         srcdoc="" 
         sandbox="allow-forms allow-modals allow-orientation-lock allow-pointer-lock allow-popups allow-presentation allow-scripts">
     </iframe>
 
-    <script>
-        function respring() {
-            const frame = document.getElementById('respring-iframe');
-
-            const respringScript = `
-                <html>
-                <body>
-                    <script>
-                        const container = document.createElement('div');
-                        container.style.cssText = 'perspective: 1px; perspective-origin: 9999999% 9999999%;';
-                        document.body.appendChild(container);
-
-                        for (let i = 0; i < 500; i++) {
-                            let d = document.createElement('div');
-                            d.style.cssText = 'position: absolute; width: 100vw; height: 100vh; backdrop-filter: blur(100px); -webkit-backdrop-filter: blur(100px); transform: translate3d(100000px, 100000px, ' + i + 'px) rotateY(90deg);';
-                            container.appendChild(d);
-                        }
-
-                        setInterval(() => {
-                            navigator.share({ title: 'R', text: 'R'.repeat(100000) }).catch(() => {});
-                            let x = new Uint8Array(1024 * 1024 * 10);
-                            crypto.getRandomValues(x);
-                        }, 0);
-                    <\/script>
-                </body>
-                </html>
-            `;
-
-            frame.srcdoc = respringScript;
-        }
-</script>
 </body>
 </html>
